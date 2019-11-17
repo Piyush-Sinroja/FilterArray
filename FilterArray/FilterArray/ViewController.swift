@@ -11,29 +11,28 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDataSour
     @IBOutlet weak var txtFilter: UITextField!
     @IBOutlet weak var tblFilter: UITableView!
     
-    var arrMain: NSMutableArray = NSMutableArray()
-    var arrTemp: NSArray = NSArray()
+    var arrMain = [[String: String]]()
+    var arrTemp = [[String: String]]()
     var strSearch : String = String()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        let dic1: NSDictionary = ["name": "Ravi"]
-        let dic2: NSDictionary = ["name": "Aavi"]
-        let dic3: NSDictionary = ["name": "Navi"]
+        let dic1 = ["name": "Ravi"]
+        let dic2 = ["name": "Aavi"]
+        let dic3 = ["name": "Navi"]
         
-        arrMain.add(dic1)
-        arrMain.add(dic2)
-        arrMain.add(dic3)
+        arrMain.append(dic1)
+        arrMain.append(dic2)
+        arrMain.append(dic3)
 
-        arrTemp = arrMain.mutableCopy() as! NSArray
+        arrTemp = arrMain
         
         let label = UILabel(frame: CGRect(x :0,y :0,width :10,height: 10))
         label.text = ""
         txtFilter.leftViewMode = .always
         txtFilter.leftView = label
-
     }
 
     override func didReceiveMemoryWarning() {
@@ -47,15 +46,15 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDataSour
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return UITableViewAutomaticDimension
+        return UITableView.automaticDimension
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let objCountryListCell: UITableViewCell = tableView.dequeueReusableCell(withIdentifier: "cell")! as UITableViewCell
         
-        let dic: NSDictionary = arrMain[indexPath.row] as! NSDictionary
-        objCountryListCell.textLabel?.text = dic.object(forKey: "name") as! String?
+        let dic = arrMain[indexPath.row]
+        objCountryListCell.textLabel?.text = dic["name"]
     
         return objCountryListCell
     }
@@ -77,41 +76,44 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDataSour
         strSearch = currentString
         
         if textField == txtFilter {
-            updateTable(NormalListArr: arrTemp as! NSMutableArray, strkey: "name")
+            updateTable(normalListArr: arrTemp, strkey: "name")
         }
         
         return true
     }
 
     //MARK:- Search Update
-    func updateTable(NormalListArr: NSArray, strkey: String) {
-        var filteredListarr: NSMutableArray?
-        filteredListarr = nil
+    func updateTable(normalListArr: [[String: String]], strkey: String) {
+        var filteredListarr = [[String: String]]()
         
-        filteredListarr = NSMutableArray.init(array: NormalListArr)
+        filteredListarr = normalListArr
         
         let predicate: NSPredicate?
         
-        if strkey.characters.count > 0 {
+        if strkey.count > 0 {
             predicate = NSPredicate(format: "%K BEGINSWITH[cd]%@", strkey, "\(strSearch)")
         }
         else {
             predicate = NSPredicate(format: "self BEGINSWITH[cd] %@", "\(strSearch)")
         }
         
-        filteredListarr?.filter(using: predicate!)
+        guard let predicateValue = predicate else {
+            return
+        }
         
-        if strSearch.characters.count == 0 {
-            updateNEw(filteredarr: NormalListArr)
+        filteredListarr = filteredListarr.filter(predicateValue.evaluate(with:))
+        
+        if strSearch.count == 0 {
+            updateNEw(filteredarr: normalListArr)
         }
         else{
-            updateNEw(filteredarr: filteredListarr!)
+            updateNEw(filteredarr: filteredListarr)
         }
     }
 
-   func updateNEw(filteredarr: NSArray) {
+   func updateNEw(filteredarr: [[String: String]]) {
     if filteredarr.count > 0 {
-        arrMain = filteredarr.mutableCopy() as! NSMutableArray
+        arrMain = filteredarr
         tblFilter.reloadData()
     }
    }
